@@ -6,10 +6,11 @@ const int threshold = 3;
 const int increment = 5;
 
 const int branchOnePin = 2;
+const int branchOneButtonPin = 3;
+const bool branchOneActivated = false;
 const int branchOneNum = 60;
-int branchOneTimes [branchOneNum];
 
-uint32_t fade(int index, int time, int maxtime, int startcolor, int endcolor, int threshold) {
+int fadePulse(int index, int time, int maxtime, int startcolor, int endcolor, int threshold) {
   if(time < threshold*index) {
     time = 0;
   }
@@ -28,11 +29,13 @@ uint32_t fade(int index, int time, int maxtime, int startcolor, int endcolor, in
   }
 }
 
-void updateLights(Adafruit_NeoPixel *strip, int *times, int length, int timeLit, int threshold) {
-  for(int i=0; i<length; i++) {
-    // start color should be either #000000 or #603311
-    strip->setPixelColor(i, fade(i, times[i], timeLit, strip->Color(0, 0, 0), strip->Color(0, 255, 0), threshold));
-    strip->show();
+void updatePulse(Adafruit_NeoPixel *strip, int *times, int length, int timeLit, int threshold) {
+  if(time < threshold*length + timeLit) {
+    for(int i=0; i<length; i++) {
+      // start color should be either #000000 or #603311
+      strip->setPixelColor(i, fadePulse(i, times[i], timeLit, strip->Color(0, 0, 0), strip->Color(0, 255, 0), threshold));
+      strip->show();
+    }
   }
 }
 
@@ -44,6 +47,12 @@ void setup() {
 }
 
 void loop() {
-  updateLights(&branchOne, branchOneTimes, branchOneNum, timeLit, threshold);
+  if(digitalRead(branchOneButtonPin)) {
+    branchOneActivated = true;
+  }
+  if(branchOneActivated) {
+    updatePulse(&branchOne, branchOneTimes, branchOneNum, timeLit, threshold);
+  }
+  
   delay(increment);
 }
